@@ -4,7 +4,8 @@ var gulp = require('gulp'),
   concat = require('gulp-concat'),
   uglify = require('gulp-uglify'),
   rename = require('gulp-rename'),
-  browserSync = require('browser-sync').create()
+  cachebust = require('gulp-cache-bust'),
+  browserSync = require('browser-sync').create();
 
 const paths = {
   styles: {
@@ -35,7 +36,7 @@ var browserSyncWatchFiles = [
 var browserSyncOptions = {
   watchTask: true,
   proxy: "https://joshgreendesign.dev"
-}
+};
 
 // function watch() {
 //   browserSync.init({
@@ -60,7 +61,7 @@ gulp.task('styles', function () {
       basename: "style"
     }))
     .pipe(gulp.dest(paths.styles.dest))
-    .pipe(browserSync.reload({ stream: true }))
+    .pipe(browserSync.reload({ stream: true }));
 });
 
 gulp.task('compress', function () {
@@ -68,7 +69,17 @@ gulp.task('compress', function () {
     .pipe(concat('scripts.min.js'))
     .pipe(uglify())
     .pipe(gulp.dest(paths.scripts.src))
-    .pipe(browserSync.reload({ stream: true }))
+    .pipe(browserSync.reload({ stream: true }));
+});
+
+
+gulp.task('cache', function() {
+    // content
+  return gulp.src('./*.php')
+    .pipe(cachebust({
+      type: 'timestamp'
+    }))
+    .pipe(gulp.dest('.'));
 });
 
 gulp.task('browser-sync', function () {
@@ -76,11 +87,9 @@ gulp.task('browser-sync', function () {
 });
 
 gulp.task('watch', function () {
-
   gulp.watch(paths.styles.src, gulp.parallel('styles'));
   gulp.watch(paths.scripts.src, gulp.parallel('compress'));
-
 });
 
 
-gulp.task('default', gulp.parallel('watch', 'browser-sync'));
+gulp.task('default', gulp.parallel('watch', 'cache', 'browser-sync'));
